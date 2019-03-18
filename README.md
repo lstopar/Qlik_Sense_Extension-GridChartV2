@@ -1,6 +1,9 @@
+
 #Qlik Sense Extension - Grid Chart
 This extension creates a grid chart similar to the one found in QlikView 11.
+
 ##Implementation The grid chart takes 2 dimensions and 1 to 2 measures:
+
 ###Dimension 1: This dimension is for the x-axis.
 ###Dimension 2: This dimension is for the y-axis.
 ###Measure 1: This measure controls the bubble size.
