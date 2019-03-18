@@ -15,3 +15,7 @@ This measure allows you to define a custom color based on the dimension and meas
 If you do not choose to use Measure 2 to control the color based on the data, you can define a global color for all bubbles in the Properties panel, under "Appearance>Color". You can also set auto-transparency on or off in this menu. The transparency setting will apply transparency to the bubbles based on their size.
 <hr>
 Link to <a href="https://github.com/skokenes/Qlik_Sense_Extension-GridChart" target="_blank">Orignal Page</a>.
+<hr>
+<img src="./GridChart1.PNG" alt="1st Version" style="width: 100%;">
+<img src="./GridChart2.PNG" alt="1st Version" style="width: 100%;">
+<img src="./GridChart3.PNG" alt="1st Version" style="width: 100%;">
