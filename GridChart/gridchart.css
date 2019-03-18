@@ -1,0 +1,59 @@
+.qv-object-gridchart div.qv-object-content-container {}
+.qv-object-GridChart .axis text {
+	font: 14px sans-serif;
+}
+/*
+.qv-object-GridChart .axis path {
+  fill: none;
+  stroke: none;
+  shape-rendering: crispEdges;
+}
+*/
+
+.qv-object-GridChart .circles {}
+.qv-object-GridChart .axis .tick {
+	cursor: default;
+}
+.qv-object-GridChart .y.axis .tick line {
+	/*fill: none;
+	stroke: #8a8a8a;
+	opacity: 0.8;
+	*/
+	
+}
+
+.qv-object-GridChart .axis .domain {
+	fill: none;
+    stroke: #000000;
+}
+
+.qv-object-GridChart .axis .tick text{
+	 font-weight: bold;
+}
+
+
+.qv-object-GridChart .axis text {
+  font: 10px sans-serif;
+}
+
+.qv-object-GridChart .axis path,
+.qv-object-GridChart .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+
+div.Gridtooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: 60px;					
+    height: 28px;					
+    padding: 2px;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;
+	z-index: 1;
+}
