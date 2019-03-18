@@ -12,8 +12,8 @@ This measure allows you to define a custom color & background color for bubble a
 #### Measure 2 (optional):
 This measure controls the bubble size.
 #### Note :
- -1st Measure if for Transparency, BG for circle & Color is for value
- -2nd Measure is for circle size (Transparency, BG & Color will not work)
+ 1st Measure if for Transparency, BG for circle & Color is for value
+ 2nd Measure is for circle size (Transparency, BG & Color will not work)
 <hr>
 Link to <a href="https://github.com/skokenes/Qlik_Sense_Extension-GridChart" target="_blank">Orignal Page</a>.
 <hr>
