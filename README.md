@@ -13,4 +13,5 @@ This measure controls the bubble size.
 This measure allows you to define a custom color based on the dimension and measure data. For example, you could create a measure that colors the bubbles red when they pass a certain threshold, but blue otherwise.
 #### Note :
 If you do not choose to use Measure 2 to control the color based on the data, you can define a global color for all bubbles in the Properties panel, under "Appearance>Color". You can also set auto-transparency on or off in this menu. The transparency setting will apply transparency to the bubbles based on their size.
-<a href="https://github.com/skokenes/Qlik_Sense_Extension-GridChart" target="_blank">Orignal Page</a>
+<hr>
+Link to <a href="https://github.com/skokenes/Qlik_Sense_Extension-GridChart" target="_blank">Orignal Page</a>.
