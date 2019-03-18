@@ -7,12 +7,13 @@ Implementation The grid chart takes 2 dimensions and 1 to 2 measures:
 This dimension is for the x-axis.
 #### Dimension 2:
 This dimension is for the y-axis.
-#### Measure 1:
-This measure controls the bubble size.
+#### Measure 2:
+This measure allows you to define a custom color & background color for bubble as per calculation
 #### Measure 2 (optional):
-This measure allows you to define a custom color based on the dimension and measure data. For example, you could create a measure that colors the bubbles red when they pass a certain threshold, but blue otherwise.
+This measure controls the bubble size.
 #### Note :
-If you do not choose to use Measure 2 to control the color based on the data, you can define a global color for all bubbles in the Properties panel, under "Appearance>Color". You can also set auto-transparency on or off in this menu. The transparency setting will apply transparency to the bubbles based on their size.
+  -1st Measure if for Transparency, BG for circle & Color is for value
+  -2nd Measure is for circle size (Transparency, BG & Color will not work)
 <hr>
 Link to <a href="https://github.com/skokenes/Qlik_Sense_Extension-GridChart" target="_blank">Orignal Page</a>.
 <hr>
