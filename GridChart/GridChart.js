@@ -1,4 +1,4 @@
-define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
+define(["jquery", "css!./gridchart.css", "./d3.min",], function($, cssContent) {
 	'use strict';
 	//$("<style>").html(cssContent).appendTo("head");
 	return {
