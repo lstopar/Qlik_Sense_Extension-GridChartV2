@@ -1,4 +1,5 @@
 # Qlik Sense Extension - Grid Chart
+# There is a bug Once its resolved it can be used again
 ##### This extension creates a grid chart similar to the one found in QlikView 11.
 
 Implementation The grid chart takes 2 dimensions and 1 to 2 measures:
