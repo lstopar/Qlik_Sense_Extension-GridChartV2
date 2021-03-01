@@ -67,7 +67,7 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
 									ref: "circleSize",
 									label: "Circle Size",
 									type: "number",
-									defaultValue: 50
+									defaultValue: 80
 								},
 								Color: {
 									ref: "nodeColor.value",
@@ -88,7 +88,22 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
 										label: "Off"
 									}],
 									defaultValue: false
-								}
+								},
+                                showText: {
+                                    ref: 'nodeText.show',
+                                    label: 'Text',
+                                    type: 'boolean',
+                                    options: [
+                                        {
+                                            value: true,
+                                            label: "Show"
+                                        },
+                                        {
+                                            value: false,
+                                            label: "Hide"
+                                        }
+                                    ]
+                                }
 							}
 						}
 					}
@@ -107,6 +122,11 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
 			// Create a reference to the app, which will be used later to make selections
 			var self = this;
 			// Get the data
+            var nodeTextOpts = layout.nodeText != null ? layout.nodeText : { show: true };
+            var showNodeText = nodeTextOpts.show == true;
+
+            var rotateXAxis = true;
+
 			var qMatrix = layout.qHyperCube.qDataPages[0].qMatrix;
 			var data = qMatrix.map(function(d) {
 				return {
@@ -133,57 +153,179 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
 				width: $element.width(),
 				id: "container_" + layout.qInfo.qId
 			};
+
+            var containerId = "#" + ext_prop.id;
+            var containerW = ext_prop.width;
+            var containerH = ext_prop.height;
+
 			// Get the user properties
 			var user_prop = layout.nodeColor;
 			// Create or empty the chart container
 			if (document.getElementById(ext_prop.id)) {
 				$("#" + ext_prop.id).empty();
 			} else {
-				$element.append($("<div />").attr("id", ext_prop.id).width(ext_prop.width).height(ext_prop.height));
+				$element.append($("<div />").attr("id", ext_prop.id).width(containerW).height(containerH));
 			}
 			// Draw the visualization
 			viz(self, data, ext_prop, selections, user_prop);
 
 			function viz(self, data, ext_prop, selections, user_prop) {
+                var mnItemHeight = 2;
+                var mnChartH = data.length*mnItemHeight;
+
+                var xAxisH = 20;
+
 				// define initial margin
 				var chart_margin = {
-					top: 10,
-					bottom: 20,
+					top: 0,
+					bottom: 0,
 					left: 10,
 					right: 10
 				};
+
+                var renderLayout = function (containerId, wrapperW, wrapperH, chartW, chartH, chart_margin, xAxisH, yAxisW) {
+                    var container = d3.select(containerId);
+                    var wrapper = container.append('div')
+                                           .style('width', wrapperW + 'px')
+                                           .style('height', wrapperH + 'px')
+                                           .style('overflow-y', 'auto')
+                                           .style('overflow-x', 'hidden')
+                                           .style('margin-top', chart_margin.top + 'px')
+                                           .style('margin-left', chart_margin.left + 'px');
+                        // .attr('style', 'width:' + wrapperW + 'px;height:' + wrapperH + 'px;overflow-y: auto;overflow-x:hidden;');
+                    var svg = wrapper.append("svg")
+                                     .attr("width", wrapperW)
+                                     .attr("height", chartH).append("g");
+                    svg.attr("transform", "translate(" + yAxisW + ",0)");
+
+                    return {
+                        container: container,
+                        wrapper: wrapper,
+                        svg: svg
+                    }
+                }
+
+                var renderAxis = function (container, data, chartW, chartH, xAxisH, chart_margin, yAxisW) {
+                    var y = d3.scale.ordinal().domain(data.map(function(d) {
+                        return d.Dim2;
+                    })).rangeBands([0, chartH]);
+
+                    var yAxis = d3.svg.axis().scale(y).orient("left");
+                    var yAxis_g = svg.append("g").attr("class", "y axis").call(yAxis);
+
+                    // Update y scale based on new chart height
+                    y.rangeBands([0, chartH]);
+
+                    var x = d3.scale.ordinal().domain(data.map(function(d) {
+                        return d.Dim1;
+                    })).rangeBands([0, chartW]);
+
+                    //.orient("bottom").ticks(1).innerTickSize(-height)
+                    var xAxis = d3.svg.axis().scale(x).outerTickSize(-chartH);
+
+                    // create the initial x axis so we can determine it's height
+                    var xAxisSvg = container.append('svg')
+                                          .attr('width', chartW)
+                                          .attr('height', xAxisH);
+                    xAxisSvg.attr('transform', 'translate(' + yAxisW + ',0)');
+                    var xAxisG = xAxisSvg.append("g")
+                                        .attr("class", "x axis")
+                                        .call(xAxis);
+                    if (rotateXAxis) {
+                        xAxisG.selectAll('text')
+                                .style('text-anchor', 'end')
+                                .attr('transform', 'translate(5, 0)rotate(-45)');
+                    }
+
+                    return {
+                        y: y,
+                        yAxisG: yAxis_g,
+                        x: x,
+                        xAxisSvg: xAxisSvg,
+                        xAxisG: xAxisG
+                    }
+                }
+
 				// Define the div for the tooltip
 				var tooltip = d3.select("body").append("div").attr("class", "Gridtooltip").style("opacity", 0);
 				// Define the width and height, which will match in this example
-				var width = ext_prop.width;
-				var height = ext_prop.height;
-				// Create the svg and append a group to it
-				var svg = d3.select("#" + ext_prop.id).append("svg").attr("width", width).attr("height", height).append("g");
-				// Set up an initial yAxis so we can determine the left margin width
-				var y = d3.scale.ordinal().domain(data.map(function(d) {
-					return d.Dim2;
-				})).rangeBands([0, height]);
-				var yAxis = d3.svg.axis().scale(y).orient("left");
-				var yAxis_g = svg.append("g").attr("class", "y axis").call(yAxis);
-				// Determine the width of the axis
-				var yAxis_width = yAxis_g[0][0].getBoundingClientRect().width;
-				// Remove the test yAxis
-				yAxis_g.remove();
-				// Update chart margin based on the yAxis width
-				chart_margin.left = chart_margin.left + yAxis_width;
-				// Create the chart height and width based on the new margin values
-				var chart_height = height - chart_margin.top - chart_margin.bottom;
-				var chart_width = width - chart_margin.left - chart_margin.right;
-				// Move the svg group based on the new chart margins
-				svg.attr("transform", "translate(" + chart_margin.left + "," + chart_margin.top + ")");
-				// Create the x scale and axis	
-				var x = d3.scale.ordinal().domain(data.map(function(d) {
-					return d.Dim1;
-				})).rangeBands([0, chart_width]);
-				//.orient("bottom").ticks(1).innerTickSize(-height)
-				var xAxis = d3.svg.axis().scale(x).outerTickSize(-height);
-				// Update y scale based on new chart height
-				y.rangeBands([0, chart_height]);
+                var wrapperW = containerW - chart_margin.left - chart_margin.right;
+                var wrapperH = containerH - chart_margin.top - chart_margin.bottom - xAxisH;
+
+                var chartW = wrapperW;
+                var chartH = Math.max(wrapperH - 4, mnChartH);
+
+                // PHASE 1: Render, measure bounds and remove
+                var layoutResult = renderLayout(
+                    containerId,
+                    wrapperW,
+                    wrapperH,
+                    chartW,
+                    chartH,
+                    chart_margin,
+                    xAxisH,
+                    0
+                );
+                var container = layoutResult.container;
+                var svg = layoutResult.svg;
+                var wrapper = layoutResult.wrapper;
+
+                var axisResult = renderAxis(
+                    container,
+                    data,
+                    chartW,
+                    chartH,
+                    xAxisH,
+                    chart_margin,
+                    0
+                );
+                var yAxisG = axisResult.yAxisG;
+                var xAxisG = axisResult.xAxisG;
+                var xAxisSvg = axisResult.xAxisSvg;
+
+                var yAxisRealW = yAxisG[0][0].getBoundingClientRect().width;
+                var xAxisRealH = xAxisG[0][0].firstChild.getBoundingClientRect().height;
+
+                wrapper.remove();
+                yAxisG.remove();
+                xAxisSvg.remove();
+
+                var realWrapperH = containerH - xAxisRealH - chart_margin.top - chart_margin.bottom;
+                var realWrapperW = wrapperW;
+                var realChartW = chartW - yAxisRealW;
+                // var realChartH = chartH;
+                var realChartH = Math.max(realWrapperH - 4, mnChartH);
+
+                // PHASE 2: Render the chart and axis
+                var layoutResult = renderLayout(
+                    containerId,
+                    realWrapperW,
+                    realWrapperH,
+                    realChartW,
+                    realChartH,
+                    chart_margin,
+                    xAxisRealH,
+                    yAxisRealW
+                )
+                var container = layoutResult.container;
+                var svg = layoutResult.svg;
+                var wrapper = layoutResult.wrapper;
+
+                var axisResult = renderAxis(
+                    container,
+                    data,
+                    realChartW,
+                    realChartH,
+                    xAxisRealH,
+                    chart_margin,
+                    yAxisRealW
+                );
+                var y = axisResult.y;
+                var yAxisG = axisResult.yAxisG;
+                var x = axisResult.x;
+                var xAxisG = axisResult.xAxisG;
+                var xAxisSvg = axisResult.xAxisSvg;
+
 				// Create a scale for the bubble size
 				var max_r = Math.min(x.rangeBand(), y.rangeBand()) / 2;
 				var min_to_max_ratio = d3.min(data, function(d) {
@@ -222,24 +364,24 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
 					});;
 				//.attr("fill",function(d) { console.log(d); return ARGBtoRGBA(d.qAttrExps.qValues["0"].qText);});
 				// Add title text for the circles
-				circles.append("title").text(function(d) {
-					return d.Text;
-				});
-				// Add the circles Text				
-				svg.selectAll(".gcircle").append("text").attr("x", function(d) {
-					return (x(d.Dim1) + x.rangeBand() / 2);
-				}).attr("y", function(d) {
-					return (y(d.Dim2) + y.rangeBand() / 2);
-				}).attr("font-size", "1.2em").attr("text-anchor", "middle").attr("alignment-baseline", "central").attr("fill", function(d) {
-					return d.TextColor;
-				}).text(function(d) {
-					return d.Text;
-				}).append("title").text(function(d) {
-					return d.Text;
-				});
-				
+                circles.append("title").text(function(d) {
+                    return d.Text;
+                });
 
-				
+                // Add the circles Text				
+                if (showNodeText) {
+                    svg.selectAll(".gcircle").append("text").attr("x", function(d) {
+                        return (x(d.Dim1) + x.rangeBand() / 2);
+                    }).attr("y", function(d) {
+                        return (y(d.Dim2) + y.rangeBand() / 2);
+                    }).attr("font-size", "1.2em").attr("text-anchor", "middle").attr("alignment-baseline", "central").attr("fill", function(d) {
+                        return d.TextColor;
+                    }).text(function(d) {
+                        return d.Text;
+                    }).append("title").text(function(d) {
+                        return d.Text;
+                    });
+                }
 				
 				// Add the selection logic on clicking the circles
 				circles.on("click", function(d) {
@@ -259,10 +401,6 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
 						return opacity(d.Value)
 					})
 				}
-				// Add the x-axis
-				svg.append("g").attr("class", "x axis").attr("transform", "translate(0," + chart_height + ")").call(xAxis);
-				// Add the y-axis
-				svg.append("g").attr("class", "y axis").call(yAxis);
 				// x-axis click to select
 				d3.selectAll(".x.axis .tick").on("click", function(d) {
 					self.backendApi.selectValues(0, [getProp(data, "Dim1", d, "Dim1_key")], true);
