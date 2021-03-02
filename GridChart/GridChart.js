@@ -250,12 +250,9 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
                                         .attr("class", "x axis")
                                         .call(xAxis);
                     if (rotateXAxis) {
-                        // xAxisG.selectAll('text')
-                        //         .style('text-anchor', 'middle')
-                        //         .attr('transform', 'translate(0, 20)rotate(-45)');
                         xAxisG.selectAll('text')
                                 .style('text-anchor', 'end')
-                                .attr('transform', 'translate(-' + (0.5*x.rangeBand()) + ',0)rotate(-45)');
+                                .attr('transform', 'translate(' + (-0.5*x.rangeBand() + 5) + ',0)rotate(-45)');
                     }
 
                     return {
