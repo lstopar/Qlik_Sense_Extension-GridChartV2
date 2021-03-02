@@ -88,11 +88,18 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
 										label: "Off"
 									}],
 									defaultValue: false
-								},
+								}
+							}
+						},
+                        textPanel: {
+                            type: 'items',
+                            label: 'Text',
+                            items: {
                                 showText: {
                                     ref: 'nodeText.show',
-                                    label: 'Text',
+                                    label: 'Show item text',
                                     type: 'boolean',
+                                    defaultValue: true,
                                     options: [
                                         {
                                             value: true,
@@ -103,9 +110,25 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
                                             label: "Hide"
                                         }
                                     ]
+                                },
+                                rotateLabels: {
+                                    ref: 'xAxis.labels.rotate',
+                                    label: 'Rotate X Labels',
+                                    type: 'boolean',
+                                    defaultValue: false,
+                                    options: [
+                                        {
+                                            value: true,
+                                            label: 'Rotate'
+                                        },
+                                        {
+                                            value: false,
+                                            label: 'Don\'t Rotate'
+                                        }
+                                    ]
                                 }
-							}
-						}
+                            }
+                        }
 					}
 				}
 			}
@@ -125,7 +148,9 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
             var nodeTextOpts = layout.nodeText != null ? layout.nodeText : { show: true };
             var showNodeText = nodeTextOpts.show == true;
 
-            var rotateXAxis = true;
+            var xAxisTextOpts = layout.xAxis || {};
+            var xAxisLabelsOpts = xAxisTextOpts.labels || {};
+            var rotateXAxis = xAxisLabelsOpts.rotate == true;
 
 			var qMatrix = layout.qHyperCube.qDataPages[0].qMatrix;
 			var data = qMatrix.map(function(d) {
@@ -170,29 +195,21 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
 			viz(self, data, ext_prop, selections, user_prop);
 
 			function viz(self, data, ext_prop, selections, user_prop) {
-                var mnItemHeight = 2;
+                var mnItemHeight = 3;
                 var mnChartH = data.length*mnItemHeight;
 
                 var xAxisH = 20;
 
 				// define initial margin
-				var chart_margin = {
-					top: 0,
-					bottom: 0,
-					left: 10,
-					right: 10
-				};
-
-                var renderLayout = function (containerId, wrapperW, wrapperH, chartW, chartH, chart_margin, xAxisH, yAxisW) {
+                var renderLayout = function (containerId, wrapperW, wrapperH, chartW, chartH, xAxisH, yAxisW) {
                     var container = d3.select(containerId);
                     var wrapper = container.append('div')
                                            .style('width', wrapperW + 'px')
                                            .style('height', wrapperH + 'px')
                                            .style('overflow-y', 'auto')
                                            .style('overflow-x', 'hidden')
-                                           .style('margin-top', chart_margin.top + 'px')
-                                           .style('margin-left', chart_margin.left + 'px');
-                        // .attr('style', 'width:' + wrapperW + 'px;height:' + wrapperH + 'px;overflow-y: auto;overflow-x:hidden;');
+                                           .style('margin-top', '0px')
+                                           .style('margin-left', '0px');
                     var svg = wrapper.append("svg")
                                      .attr("width", wrapperW)
                                      .attr("height", chartH).append("g");
@@ -205,7 +222,7 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
                     }
                 }
 
-                var renderAxis = function (container, data, chartW, chartH, xAxisH, chart_margin, yAxisW) {
+                var renderAxis = function (container, data, wrapperW, wrapperH, chartW, chartH, xAxisH, yAxisW) {
                     var y = d3.scale.ordinal().domain(data.map(function(d) {
                         return d.Dim2;
                     })).rangeBands([0, chartH]);
@@ -225,16 +242,20 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
 
                     // create the initial x axis so we can determine it's height
                     var xAxisSvg = container.append('svg')
-                                          .attr('width', chartW)
+                                          .attr('width', wrapperW)
                                           .attr('height', xAxisH);
-                    xAxisSvg.attr('transform', 'translate(' + yAxisW + ',0)');
+                    // xAxisSvg.attr('transform', 'translate(' + yAxisW + ',0)');
                     var xAxisG = xAxisSvg.append("g")
+                                        .attr('transform', 'translate(' + yAxisW + ',0)')
                                         .attr("class", "x axis")
                                         .call(xAxis);
                     if (rotateXAxis) {
+                        // xAxisG.selectAll('text')
+                        //         .style('text-anchor', 'middle')
+                        //         .attr('transform', 'translate(0, 20)rotate(-45)');
                         xAxisG.selectAll('text')
                                 .style('text-anchor', 'end')
-                                .attr('transform', 'translate(5, 0)rotate(-45)');
+                                .attr('transform', 'translate(-' + (0.5*x.rangeBand()) + ',0)rotate(-45)');
                     }
 
                     return {
@@ -249,10 +270,10 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
 				// Define the div for the tooltip
 				var tooltip = d3.select("body").append("div").attr("class", "Gridtooltip").style("opacity", 0);
 				// Define the width and height, which will match in this example
-                var wrapperW = containerW - chart_margin.left - chart_margin.right;
-                var wrapperH = containerH - chart_margin.top - chart_margin.bottom - xAxisH;
+                var wrapperW = containerW;
+                var wrapperH = containerH;
 
-                var chartW = wrapperW;
+                var chartW = wrapperW - 10;
                 var chartH = Math.max(wrapperH - 4, mnChartH);
 
                 // PHASE 1: Render, measure bounds and remove
@@ -262,7 +283,6 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
                     wrapperH,
                     chartW,
                     chartH,
-                    chart_margin,
                     xAxisH,
                     0
                 );
@@ -273,10 +293,11 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
                 var axisResult = renderAxis(
                     container,
                     data,
+                    wrapperW,
+                    wrapperH,
                     chartW,
                     chartH,
                     xAxisH,
-                    chart_margin,
                     0
                 );
                 var yAxisG = axisResult.yAxisG;
@@ -284,15 +305,27 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
                 var xAxisSvg = axisResult.xAxisSvg;
 
                 var yAxisRealW = yAxisG[0][0].getBoundingClientRect().width;
-                var xAxisRealH = xAxisG[0][0].firstChild.getBoundingClientRect().height;
+
+                // find the largest axis element
+                var xAxisRealH = xAxisH;
+                var currLabel = xAxisG[0][0].firstChild;
+                while (currLabel != null) {
+                    var currLabelH = currLabel.getBoundingClientRect().height;
+                    if (currLabelH > xAxisRealH) {
+                        xAxisRealH = currLabelH;
+                    }
+
+                    currLabel = currLabel.nextSibling;
+                    if (currLabel.localName != 'g') { currLabel = null; }
+                }
 
                 wrapper.remove();
                 yAxisG.remove();
                 xAxisSvg.remove();
 
-                var realWrapperH = containerH - xAxisRealH - chart_margin.top - chart_margin.bottom;
+                var realWrapperH = containerH - xAxisRealH;
                 var realWrapperW = wrapperW;
-                var realChartW = chartW - yAxisRealW;
+                var realChartW = chartW - yAxisRealW - 10;
                 // var realChartH = chartH;
                 var realChartH = Math.max(realWrapperH - 4, mnChartH);
 
@@ -303,7 +336,6 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
                     realWrapperH,
                     realChartW,
                     realChartH,
-                    chart_margin,
                     xAxisRealH,
                     yAxisRealW
                 )
@@ -314,10 +346,11 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
                 var axisResult = renderAxis(
                     container,
                     data,
+                    realWrapperW,
+                    realWrapperH,
                     realChartW,
                     realChartH,
                     xAxisRealH,
-                    chart_margin,
                     yAxisRealW
                 );
                 var y = axisResult.y;
@@ -346,8 +379,17 @@ define(["jquery", "css!./gridchart.css", "./d3.min"], function($, cssContent) {
 					return d.Value
 				})]).range([min_to_max_ratio, 1]);
 				// Add the circles
-				var circles = svg.selectAll(".circles").data(data).enter().append("g").attr("class", "gcircle").append("circle").attr("class", "circles").attr("cx", function(d) {
+				var circles = svg.selectAll(".circles")
+                                    .data(data)
+                                    .enter()
+                                    .append("g")
+                                    .attr("class", "gcircle")
+                                    .append("circle")
+                                    .attr("class", "circles")
+                                    .attr("cx", function(d) {
+                        // center point of the circle
 						return x(d.Dim1) + x.rangeBand() / 2;
+                        // return x(d.Dim1);
 					}).attr("cy", function(d) {
 						return y(d.Dim2) + y.rangeBand() / 2;
 					})
