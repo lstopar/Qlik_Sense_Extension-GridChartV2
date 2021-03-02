@@ -1,8 +1,8 @@
 {
-	"name": "[Dev] GridChart",
-	"description": "Basic empty visualization template",
+	"name": "GridChart",
+	"description": "A grid chart which supports row scrolling and rotated column labels",
 	"type": "visualization",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"icon": "extension",
 	"author": "",
 	"homepage": "",
